@@ -1,9 +1,4 @@
-# scripts/train_deformable_detr_h0_midogpp.py
-"""Training script for Deformable DETR with H-optimus-0 backbone on MIDOG++.
 
-Loads the config, verifies patient-stratified splits and an EarlyStoppingHook,
-then runs the MMDetection runner. All settings live in the config.
-"""
 import json
 import sys
 from collections import defaultdict
