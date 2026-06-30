@@ -1,26 +1,3 @@
-# configs/faster_rcnn_r50frozen_midogpp.py
-#
-# FROZEN ResNet-50 baseline for the COMPAYL26 Faster R-CNN row.
-#
-# This is the CONTROLLED frozen-backbone baseline: an ImageNet-pretrained
-# ResNet-50 used STRICTLY AS A FROZEN FEATURE EXTRACTOR (like the FM ViTs),
-# with the detector's NATIVE FPN neck + the IDENTICAL Faster R-CNN head,
-# optimizer, schedule and augmentation as the frozen-FM cells.
-#
-# Purpose: isolates "frozen ImageNet CNN features" vs "frozen pathology FM
-# features" with everything downstream held constant. Differs from the
-# FULLY-FINETUNED ResNet baseline (which adapts the backbone).
-#
-# FROZEN MECHANICS:
-#   - frozen_stages=4         -> freeze stem + all 4 stages (whole backbone)
-#   - norm_cfg requires_grad=False + norm_eval=True -> BN affine params frozen
-#     AND BN running stats held fixed (no update). Nothing in the backbone
-#     trains; only the FPN neck + RPN/RoI heads are learnable.
-#
-# NECK: native FPN over C2..C5 (ResNet is natively multi-scale, so NO
-# SimpleFeaturePyramid -- that is the ViT adapter). Standard FPN strides
-# [4,8,16,32,64], so the RPN anchor strides use the mmdet default (NOT the
-# patch-14 [7,14,28,56,112] used by the ViT cells).
 
 _base_ = 'mmdet::faster_rcnn/faster-rcnn_r50_fpn_1x_coco.py'
 
@@ -36,27 +13,25 @@ metainfo = dict(classes=('mitotic figure',), palette=[(220, 20, 60)])
 model = dict(
     data_preprocessor=dict(
         type='DetDataPreprocessor',
-        mean=[123.675, 116.28, 103.53],   # ImageNet RGB mean (ResNet pretrain)
+        mean=[123.675, 116.28, 103.53],   
         std=[58.395, 57.12, 57.375],
         bgr_to_rgb=True,
-        pad_size_divisor=32,              # FPN needs /32-divisible padding
+        pad_size_divisor=32,             
     ),
 
-    # FROZEN ResNet-50: whole backbone frozen, BN stats fixed.
     backbone=dict(
         type='ResNet',
         depth=50,
         num_stages=4,
-        out_indices=(0, 1, 2, 3),         # C2,C3,C4,C5 -> FPN
-        frozen_stages=4,                  # FREEZE EVERYTHING
+        out_indices=(0, 1, 2, 3),        
+        frozen_stages=4,                 
         norm_cfg=dict(type='BN', requires_grad=False),
         norm_eval=True,
         style='pytorch',
         init_cfg=dict(type='Pretrained', checkpoint='torchvision://resnet50'),
     ),
 
-    # Native FPN (inherited from base; stated explicitly). 4 ResNet stages
-    # -> 5 pyramid levels (P2..P6), 256-d.
+
     neck=dict(
         type='FPN',
         in_channels=[256, 512, 1024, 2048],
@@ -64,15 +39,13 @@ model = dict(
         num_outs=5,
     ),
 
-    # Faster R-CNN head -- IDENTICAL hyperparameters to the FM cells, but
-    # anchor strides are the FPN defaults [4,8,16,32,64] (ResNet-native), NOT
-    # the patch-14 strides. Single anchor octave scale 8, ratios .5/1/2.
+
     rpn_head=dict(
         anchor_generator=dict(
             type='AnchorGenerator',
             scales=[8],
             ratios=[0.5, 1.0, 2.0],
-            strides=[4, 8, 16, 32, 64],   # FPN-native strides
+            strides=[4, 8, 16, 32, 64],   
         ),
     ),
     roi_head=dict(
@@ -86,9 +59,7 @@ model = dict(
     ),
 )
 
-# ---------------------------------------------------------------------------
-# AUGMENTED pipeline / data / evaluators -- IDENTICAL to the FM cells.
-# ---------------------------------------------------------------------------
+
 train_pipeline = [
     dict(type='LoadImageFromFile'),
     dict(type='LoadAnnotations', with_bbox=True),
@@ -141,7 +112,6 @@ test_evaluator = dict(type='CocoMetric',
     ann_file='data/coco_annotations/patches_1008/midogpp_test.json',
     metric='bbox', format_only=False, backend_args=None)
 
-# Optimizer -- IDENTICAL to FM cells (AdamW; only neck+head train).
 optim_wrapper = dict(
     _delete_=True,
     type='OptimWrapper',
