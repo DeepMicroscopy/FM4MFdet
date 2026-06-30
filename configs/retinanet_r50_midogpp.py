@@ -1,27 +1,3 @@
-# configs/retinanet_r50_midogpp.py
-#
-# RetinaNet with a standard ResNet-50 + FPN backbone on MIDOG++.
-#
-# CONVENTIONAL CNN BASELINE for the COMPAYL26 RetinaNet row: an
-# ImageNet-pretrained ResNet-50, FULLY TRAINABLE, with the native Feature
-# Pyramid Network. Answers "does a pathology foundation model beat a plain
-# supervised ResNet-50 RetinaNet detector?" -- so it is the standard mmdet
-# recipe, NOT forced through the ViT-style SimpleFeaturePyramid (which is built
-# for a single ViT token map and would handicap a hierarchical CNN that already
-# produces a real C3-C5 pyramid).
-#
-# Deliberate differences from the foundation-model RetinaNet cells (they are
-# what a conventional ResNet detector actually is):
-#   - neck       : FPN (native, RetinaNet's standard start_level=1), NOT SFP
-#   - backbone   : trainable (frozen_stages=1, the standard detection setting)
-#   - optimizer  : SGD (canonical RetinaNet), NOT AdamW
-#   - strides    : standard ResNet-FPN [8,16,32,64,128]
-#   - normalization: ImageNet stats (ResNet was pretrained on ImageNet)
-#
-# Held CONSTANT with the rest of the matrix where it makes sense:
-#   - data        : the same 1008 patches (patches_1008)
-#   - augmentation: the same full pipeline incl. HED stain
-#   - RetinaNet head internals (focal loss, anchors), early stopping, wandb
 
 _base_ = 'mmdet::retinanet/retinanet_r50_fpn_1x_coco.py'
 
@@ -42,28 +18,26 @@ metainfo = dict(
 model = dict(
     data_preprocessor=dict(
         type='DetDataPreprocessor',
-        mean=[123.675, 116.28, 103.53],   # ImageNet RGB mean (ResNet pretrain)
-        std=[58.395, 57.12, 57.375],      # ImageNet RGB std
+        mean=[123.675, 116.28, 103.53],   
+        std=[58.395, 57.12, 57.375],      
         bgr_to_rgb=True,
-        pad_size_divisor=32,              # FPN needs /32-divisible padding
+        pad_size_divisor=32,             
     ),
 
-    # Standard ResNet-50, ImageNet-pretrained, trainable.
     backbone=dict(
         type='ResNet',
         depth=50,
         num_stages=4,
-        out_indices=(0, 1, 2, 3),         # C2,C3,C4,C5
-        frozen_stages=1,                  # standard: freeze stem+stage1 only
+        out_indices=(0, 1, 2, 3),        
+        frozen_stages=1,                  
         norm_cfg=dict(type='BN', requires_grad=True),
-        norm_eval=True,                   # standard detection BN setting
+        norm_eval=True,                 
         style='pytorch',
         init_cfg=dict(type='Pretrained',
                       checkpoint='torchvision://resnet50'),
     ),
 
-    # Native FPN. RetinaNet uses start_level=1 with an extra P6/P7 on the
-    # top input feature (add_extra_convs='on_input'), giving P3..P7.
+
     neck=dict(
         type='FPN',
         in_channels=[256, 512, 1024, 2048],
@@ -75,9 +49,6 @@ model = dict(
 
     bbox_head=dict(
         num_classes=1,
-        # RetinaNet head internals (anchors, focal loss) kept at the canonical
-        # values inherited from the base config; strides come from the FPN
-        # (P3..P7 -> [8,16,32,64,128]), which is correct for ResNet-FPN.
     ),
 
     test_cfg=dict(
@@ -89,9 +60,7 @@ model = dict(
     )
 )
 
-# ---------------------------------------------------------------------------
-# AUGMENTED training pipeline -- same full set as the foundation-model cells.
-# ---------------------------------------------------------------------------
+
 train_pipeline = [
     dict(type='LoadImageFromFile'),
     dict(type='LoadAnnotations', with_bbox=True),
@@ -186,7 +155,6 @@ test_dataloader = dict(
     )
 )
 
-# Optimizer: SGD -- canonical RetinaNet for a fully-trainable ResNet.
 optim_wrapper = dict(
     _delete_=True,
     type='OptimWrapper',
@@ -235,8 +203,7 @@ train_cfg = dict(
     val_interval=1,
 )
 
-# SGD schedule: linear warmup then step decay at 75%/90% of the budget
-# (canonical RetinaNet step-decay style, scaled to _max_epochs).
+
 param_scheduler = [
     dict(type='LinearLR', start_factor=0.001, by_epoch=False,
          begin=0, end=500),
