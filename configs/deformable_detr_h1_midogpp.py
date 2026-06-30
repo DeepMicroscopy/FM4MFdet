@@ -35,10 +35,7 @@ model = dict(
         frozen=True,
     ),
 
-    # H1 emits one (B, 1536, 72, 72) map. SimpleFeaturePyramid expands it to
-    # 4 levels at 256 channels, which is what Deformable DETR's multi-scale
-    # deformable attention expects. No ChannelMapper needed - SFP already
-    # outputs the right channel count and number of levels.
+
     neck=dict(
         _delete_=True,
         type='SimpleFeaturePyramid',
@@ -48,7 +45,6 @@ model = dict(
         norm='LN',
     ),
 
-    # Match the number of feature levels SFP produces.
     encoder=dict(
         layer_cfg=dict(
             self_attn_cfg=dict(num_levels=4),
@@ -136,18 +132,7 @@ test_dataloader = dict(
     )
 )
 
-# ---------------------------------------------------------------------------
-# Optimisation: canonical Deformable DETR recipe (Option A)
-# ---------------------------------------------------------------------------
-#
-# Reference Deformable DETR (Zhu et al., 2021 / mmdet r50_16xb2-50e):
-#   base LR 2e-4, effective batch size 32, AdamW, wd 1e-4, grad clip 0.1.
-#
-# Our physical batch_size is 8 (single GPU). To reproduce the reference
-# effective batch of 32 without more GPU memory, we accumulate gradients
-# over 4 steps: 8 * 4 = 32. The backbone is frozen, so the reference's
-# separate lr_backbone (2e-5) is not needed - the single 2e-4 LR applies
-# only to the SFP neck + transformer encoder/decoder + bbox head.
+
 optim_wrapper = dict(
     _delete_=True,
     type='OptimWrapper',
@@ -158,11 +143,7 @@ optim_wrapper = dict(
 
 _max_epochs = 100
 
-# Warmup is iteration-based. With accumulative_counts=4 the optimiser steps
-# 4x less often per epoch, so the iteration-counted warmup is lengthened to
-# 2000 to keep DETR's warmup-sensitive early phase stable. The LR drop is
-# epoch-based and therefore unaffected by accumulation; milestone [80] keeps
-# the reference 80%-of-training drop ratio for the 100-epoch upper bound.
+
 param_scheduler = [
     dict(type='LinearLR', start_factor=0.001, by_epoch=False,
          begin=0, end=2000),
@@ -208,24 +189,10 @@ resume = False
 
 work_dir = './outputs/work_dirs/deformable_detr_h1_1008_100epochs'
 
-# 4-GPU DDP: MMEngine reads this, runs init_dist (per-rank GPU assignment
-# + DDP model wrap + DistributedSampler sharding). Without it, each rank
-# would train the full dataset (replication, not speedup).
 launcher = 'pytorch'
 
 
-# ---------------------------------------------------------------------------
-# Early stopping  (appended override - evaluated last, so it wins)
-# ---------------------------------------------------------------------------
-#
-# `max_epochs` is only an UPPER BOUND. The EarlyStoppingHook monitors
-# coco/bbox_mAP on the patient-disjoint val set; CheckpointHook keeps
-# save_best so the best epoch is always retained.
-#
-# Deformable DETR converges slowly and non-monotonically: bbox_mAP can
-# plateau for many epochs and then jump. Patience is therefore set higher
-# than the R-CNN heads (20 vs 12) with a smaller min_delta, so a late
-# improvement is not cut off prematurely.
+
 
 custom_hooks = [
     dict(
