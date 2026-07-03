@@ -1,24 +1,5 @@
 # FM4MFdet
 
-Abstract:
-
-```
-Pathology foundation models (FMs) are models trained on vast amounts of typically unlabeled data and have been
-shown to yield regularized latent spaces that can be used effectively in downstream classification tasks. This
-is also true for the classification of mitotic figures vs. other cells. However, it is so far unclear if the
-latent space of current FMs provides features that are discriminant and spatially suitably resolved to also serve
-as a backbone for dense object detection paradigms. In this work, we investigate this question for common current
-pathology FMs (UNI, UNI2-h, Virchow, Virchow2, H-optimus-0, H-optimus-1) and compare their performance against a
-fully end-to-end trained baseline based on a ResNet50 architecture. We combine FM backbones with representatives
-of single stage, dual stage and self-attention-based detectors (RetinaNet, Faster R-CNN, Deformable DETR respectively)
-on the multi-domain MIDOG++ dataset, and on the TUPAC16 dataset as an out-of-domain case. We show that the H-optimus-0
-and Virchow models yielded competitive performance, indicating that the latent spaces of current FMs—all trained on
-image-level self-supervision—are suitable for direct mitotic figure detection and may be slightly more robuston our
-out-of-domain test case.
-
-```
-# FM4MFdet
-
 Benchmarking **frozen pathology foundation-model (FM) backbones** for **mitotic figure detection** on MIDOG++ (in-domain) and TUPAC16 (out-of-domain). Each experiment pairs one frozen ViT backbone with one MMDetection head, compared against a fully end-to-end trained ResNet-50 baseline.
 
 > **Abstract.** Pathology foundation models yield regularized latent spaces that work well for classifying mitotic figures vs. other cells, but it is unclear whether those features are discriminant and spatially resolved enough to also back **dense object detection**. We investigate this for current pathology FMs (UNI, UNI2-h, Virchow, Virchow2, H-optimus-0, H-optimus-1), combining each with a single-stage (RetinaNet), dual-stage (Faster R-CNN), and self-attention-based (Deformable DETR) detector on MIDOG++, and on TUPAC16 as an out-of-domain case. H-optimus-0 and Virchow are competitive, indicating that the image-level self-supervised latent spaces of current FMs are suitable for direct mitotic figure detection and may be slightly more robust out-of-domain.
