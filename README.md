@@ -1,7 +1,7 @@
 # FM4MFdet
 
 Abstract:
-Abstract:
+
 ```
 Pathology foundation models (FMs) are models trained on
 vast amounts of typically unlabeled data and have been shown to yield
