@@ -105,3 +105,15 @@ TUPAC16 (out-of-domain) uses `scripts/infer_wsi_tupac.py`, which adds `--fixed-t
 - One slide = one patient; splits are patient-stratified and re-checked before training.
 - WSI window size must match the config `Resize` and backbone `img_size` (asserted at runtime).
 - Detection threshold is tuned on val, applied once to test.
+
+## Citation
+
+If you use this code or dataset in your research, please cite:
+
+```bibtex
+@article{banerjee2026beyond,
+  title={Beyond Classification: Pathology Foundation Models as Detection Encoders for Mitotic Figures},
+  author={Banerjee, Sweta and Teimoury, Alireza and Porsche, Nils and Stoll, Alexandra K and Weiss, Viktoria and Hargarter, Niklas and Ammeling, Jonas and Conrad, Thomas and Stroblberger, Christoph and Kaltnecker, Christopher and others},
+  journal={arXiv preprint arXiv:2607.28007},
+  year={2026}
+}
