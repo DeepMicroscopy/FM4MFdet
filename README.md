@@ -108,7 +108,7 @@ TUPAC16 (out-of-domain) uses `scripts/infer_wsi_tupac.py`, which adds `--fixed-t
 
 ## Citation
 
-If you use this code or dataset in your research, please cite:
+If you use this code in your research, please cite:
 
 ```bibtex
 @article{banerjee2026beyond,
